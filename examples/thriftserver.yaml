@@ -1,0 +1,66 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: thriftserver
+  name: thriftserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: thriftserver
+  template:
+    metadata:
+      labels:
+        app: thriftserver
+    spec:
+      containers:
+      - env:
+        - name: SPARK_MODE
+          value: thriftserver
+        - name: SPARK_MASTER_URL
+          value: spark://spark-master:7077
+        - name: SPARK_PUBLIC_DNS
+          value: localhost
+        - name: SPARK_WEBUI_PORT
+          value: "4040"
+        - name: SPARK_CORES_MAX
+          value: "4"
+        - name: SPARK_DRIVER_HOST
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.podIP
+        image: dil001/spark:2.4.4
+        name: spark-thriftserver
+        ports:
+        - containerPort: 4040
+          name: http
+          protocol: TCP
+        - containerPort: 10000
+          name: jdbc
+          protocol: TCP
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: thriftserver
+  name: thriftserver
+spec:
+  ports:
+  - name: web-ui
+    port: 4040
+    protocol: TCP
+    targetPort: http
+  - name: jdbc
+    nodePort: 30271
+    port: 10000
+    protocol: TCP
+    targetPort: jdbc
+  selector:
+    app: thriftserver
+  type: LoadBalancer
