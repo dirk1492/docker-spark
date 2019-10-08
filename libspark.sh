@@ -30,6 +30,10 @@ export SPARK_WORKDIR="${SPARK_BASEDIR}/work"
 export SPARK_CONF_FILE="${SPARK_CONFDIR}/spark-defaults.conf"
 export SPARK_LOGDIR="${SPARK_BASEDIR}/logs"
 export SPARK_TMPDIR="${SPARK_BASEDIR}/tmp"
+export SPARK_DRIVER_HOST="${SPARK_DRIVER_HOST:-}"
+export SPARK_WEBUI_PORT="${SPARK_WEBUI_PORT:-}"
+export SPARK_CORES_MAX="${SPARK_CORES_MAX:-}"
+export SPARK_WORKER_WEBUI_PORT="${SPARK_WORKER_WEBUI_PORT:-}"
 
 # Spark basic cluster
 export SPARK_MODE="${SPARK_MODE:-master}"
@@ -55,6 +59,10 @@ export SPARK_SSL_PROTOCOL="${SPARK_SSL_PROTOCOL:-TLSv1.2}"
 # System Users
 export SPARK_DAEMON_USER="spark"
 export SPARK_DAEMON_GROUP="spark"
+
+# External IP detection
+export SPARK_KUBE_SERVICE="${SPARK_KUBE_SERVICE:-}"
+
 EOF
 }
 
@@ -144,13 +152,15 @@ spark_generate_conf_file() {
         echo "spark.driver.host    $SPARK_DRIVER_HOST" >> "${SPARK_CONFDIR}/spark-defaults.conf.template"
     fi
 
-    if [ ! -z "$SPARK_WEBUI_PORT" ]; then
-        info "Set spark.ui.port = $SPARK_WEBUI_PORT"
-        echo "spark.ui.port    $SPARK_WEBUI_PORT" >> "${SPARK_CONFDIR}/spark-defaults.conf.template"
+    if [ "$SPARK_MODE" == "thriftserver" ]; then
+        if [ ! -z "$SPARK_WEBUI_PORT" ]; then
+            info "Set spark.ui.port = $SPARK_WEBUI_PORT"
+            echo "spark.ui.port    $SPARK_WEBUI_PORT" >> "${SPARK_CONFDIR}/spark-defaults.conf.template"
+        fi
     fi
 
     if [ ! -z "$SPARK_CORES_MAX" ]; then
-        info "Set spark.cores.max = $SPARK_CORES_MAX"
+        info  "Set spark.cores.max = $SPARK_CORES_MAX"
         echo "spark.cores.max    $SPARK_CORES_MAX" >> "${SPARK_CONFDIR}/spark-defaults.conf.template"
     fi
 
