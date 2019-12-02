@@ -32,7 +32,7 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: status.podIP
-        image: dil001/spark:2.4.4
+        image: dil001/spark:v2.4.4
         name: spark-thriftserver
         ports:
         - containerPort: 4040

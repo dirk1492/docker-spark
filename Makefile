@@ -7,16 +7,16 @@ REPO = dil001/spark
 
 build:
 	docker build -t $(REPO) .
-	docker tag $(REPO) $(REPO):$(TAG)
-	docker tag $(REPO) $(REPO):$(TAG)-$(BUILD)
+	docker tag $(REPO) $(REPO):v$(TAG)
+	docker tag $(REPO) $(REPO):v$(TAG)-$(BUILD)
 
 push:
 	docker push $(REPO)
-	docker push $(REPO):$(TAG)
-	docker push $(REPO):$(TAG)-$(BUILD)
+	docker push $(REPO):v$(TAG)
+	docker push $(REPO):v$(TAG)-$(BUILD)
 
 clean:
 	docker rmi $(REPO)
-	docker rmi $(REPO):$(TAG)
-	docker rmi $(REPO):$(TAG)-$(BUILD)
+	docker rmi $(REPO):v$(TAG)
+	docker rmi $(REPO):v$(TAG)-$(BUILD)
 
