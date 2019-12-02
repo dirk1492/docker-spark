@@ -49,7 +49,7 @@ if [ "$SPARK_MODE" == "master" ]; then
 elif [ "$SPARK_MODE" == "thriftserver" ]; then
     # Master constants
     EXEC=$(command -v start-thriftserver.sh)
-    ARGS=("--master=$SPARK_MASTER_URL" "--conf spark.kubernetes.container.image=gcr.io/spark-operator/spark:v2.4.4" "--conf spark.executor.instances=2") 
+    ARGS=("--master=$SPARK_MASTER_URL" "--conf" "spark.kubernetes.container.image=gcr.io/spark-operator/spark:v2.4.4" "--conf" "spark.executor.instances=2") 
     info "** Starting Spark Thriftserver **"
 else
     # Worker constants
