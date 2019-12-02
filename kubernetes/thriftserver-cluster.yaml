@@ -3,24 +3,24 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   labels:
-    app: thriftserver
-  name: thriftserver
+    app: thriftserver-cluster
+  name: thriftserver-cluster
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: thriftserver
+      app: thriftserver-cluster
   template:
     metadata:
       labels:
-        app: thriftserver
+        app: thriftserver-cluster
     spec:
       containers:
       - env:
         - name: SPARK_MODE
           value: thriftserver
         - name: SPARK_MASTER_URL
-          value: spark://spark-master:7077
+          value: k8s://https://$(KUBERNETES_SERVICE_HOST):$(KUBERNETES_SERVICE_PORT) 
         - name: SPARK_PUBLIC_DNS
           value: localhost
         - name: SPARK_WEBUI_PORT
@@ -34,6 +34,7 @@ spec:
               fieldPath: status.podIP
         image: dil001/spark:2.4.4
         name: spark-thriftserver
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 4040
           name: http
@@ -43,13 +44,15 @@ spec:
           protocol: TCP
       dnsPolicy: ClusterFirst
       restartPolicy: Always
+      serviceAccount: spark
+
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: thriftserver
-  name: thriftserver
+    app: thriftserver-cluster
+  name: thriftserver-cluster
 spec:
   ports:
   - name: web-ui
@@ -57,10 +60,9 @@ spec:
     protocol: TCP
     targetPort: http
   - name: jdbc
-    nodePort: 30271
     port: 10000
     protocol: TCP
     targetPort: jdbc
   selector:
-    app: thriftserver
+    app: thriftserver-cluster
   type: LoadBalancer

@@ -1,4 +1,4 @@
-FROM docker.io/bitnami/spark:2.4.4-debian-9-r0
+FROM docker.io/bitnami/spark:2.4.4-debian-9-r68
 
 COPY run.sh /run.sh
 COPY libspark.sh /libspark.sh
