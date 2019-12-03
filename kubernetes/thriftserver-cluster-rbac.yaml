@@ -1,3 +1,44 @@
+---  
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: spark
+  namespace: default
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: spark-role
+  namespace: default
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - '*'
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - '*'
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: spark-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: spark-role
+subjects:
+- kind: ServiceAccount
+  name: spark
+  namespace: default
+
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -5,6 +46,7 @@ metadata:
   labels:
     app: thriftserver-cluster
   name: thriftserver-cluster
+  namespace: default
 spec:
   replicas: 1
   selector:
@@ -20,7 +62,7 @@ spec:
         - name: SPARK_MODE
           value: thriftserver
         - name: SPARK_MASTER_URL
-          value: k8s://https://$(KUBERNETES_SERVICE_HOST):$(KUBERNETES_SERVICE_PORT) 
+          value: k8s://https://$(KUBERNETES_SERVICE_HOST):$(KUBERNETES_SERVICE_PORT)
         - name: SPARK_PUBLIC_DNS
           value: localhost
         - name: SPARK_WEBUI_PORT
@@ -33,6 +75,18 @@ spec:
               apiVersion: v1
               fieldPath: status.podIP
         image: dil001/spark:v2.4.4
+        readinessProbe:
+          httpGet:
+            port: 4040
+            path: /
+          initialDelaySeconds: 5
+          periodSeconds: 10        
+        livenessProbe:
+          httpGet:
+            port: 4040
+            path: /
+          initialDelaySeconds: 15
+          timeoutSeconds: 1     
         name: spark-thriftserver
         imagePullPolicy: IfNotPresent
         ports:
@@ -42,8 +96,8 @@ spec:
         - containerPort: 10000
           name: jdbc
           protocol: TCP
-      dnsPolicy: ClusterFirst
       restartPolicy: Always
+      serviceAccount: spark
 
 ---
 apiVersion: v1
@@ -52,6 +106,7 @@ metadata:
   labels:
     app: thriftserver-cluster
   name: thriftserver-cluster
+  namespace: default
 spec:
   ports:
   - name: web-ui
